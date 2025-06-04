@@ -165,6 +165,7 @@ fn test_prefix_search(#[case] immutable: bool) {
         lowercase: None,
         on_disk: None,
         phrase_matching: None,
+        stopwords: None,
     };
 
     let db = open_db_with_existing_cf(&temp_dir.path().join("test_db")).unwrap();

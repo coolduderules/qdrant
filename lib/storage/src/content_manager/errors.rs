@@ -18,7 +18,11 @@ pub enum StorageError {
     AlreadyExists { description: String },
     #[error("Not found: {description}")]
     NotFound { description: String },
-    #[error("Service internal error: {description}")]
+    #[error(
+        "Service internal error: {description}{}{}",
+        self.if_debug("", Self::backtrace_newline),
+        self.if_debug("", Self::backtrace_str),
+    )]
     ServiceError {
         description: String,
         backtrace: Option<String>,
@@ -163,6 +167,33 @@ impl StorageError {
             CollectionError::ShardUnavailable { .. } => StorageError::ShardUnavailable {
                 description: overriding_description,
             },
+        }
+    }
+
+    pub fn backtrace(&self) -> Option<&str> {
+        match self {
+            Self::ServiceError { backtrace, .. } => backtrace.as_deref(),
+            _ => None,
+        }
+    }
+
+    pub fn backtrace_str(&self) -> &str {
+        self.backtrace().unwrap_or("")
+    }
+
+    pub fn backtrace_newline(&self) -> &str {
+        if self.backtrace().is_some() { "\n" } else { "" }
+    }
+
+    pub fn if_debug<'a, T, F>(&'a self, default: T, debug: F) -> T
+    where
+        F: Fn(&'a Self) -> T,
+        T: 'a,
+    {
+        if cfg!(debug_assertions) {
+            debug(self)
+        } else {
+            default
         }
     }
 }

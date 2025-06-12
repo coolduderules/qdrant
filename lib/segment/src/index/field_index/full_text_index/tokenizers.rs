@@ -1,5 +1,6 @@
-use charabia::Tokenize;
 use std::borrow::Cow;
+
+use charabia::Tokenize;
 
 use crate::data_types::index::{TextIndexParams, TokenizerType};
 use crate::index::field_index::full_text_index::stop_words::StopwordsFilter;

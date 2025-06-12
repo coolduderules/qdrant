@@ -117,14 +117,6 @@ impl FullTextIndex {
         format!("{field}_fts")
     }
 
-    fn config(&self) -> &TextIndexParams {
-        match self {
-            Self::Mutable(index) => &index.config,
-            Self::Immutable(index) => &index.config,
-            Self::Mmap(index) => &index.config,
-        }
-    }
-
     fn points_count(&self) -> usize {
         match self {
             Self::Mutable(index) => index.inverted_index.points_count(),
@@ -150,6 +142,14 @@ impl FullTextIndex {
             Self::Mutable(index) => index.inverted_index.filter(query, hw_counter),
             Self::Immutable(index) => index.inverted_index.filter(query, hw_counter),
             Self::Mmap(index) => index.inverted_index.filter(query, hw_counter),
+        }
+    }
+
+    fn get_tokenizer(&self) -> &Tokenizer {
+        match self {
+            Self::Mutable(index) => &index.tokenizer,
+            Self::Immutable(index) => &index.tokenizer,
+            Self::Mmap(index) => &index.tokenizer,
         }
     }
 
@@ -300,7 +300,7 @@ impl FullTextIndex {
     /// Tries to parse a query. If there are any unseen tokens, returns `None`
     pub fn parse_query(&self, text: &str, hw_counter: &HardwareCounterCell) -> Option<ParsedQuery> {
         let mut tokens = AHashSet::new();
-        Tokenizer::tokenize_query(text, self.config(), |token| {
+        self.get_tokenizer().tokenize_query(text, |token| {
             tokens.insert(self.get_token(token, hw_counter));
         });
         let tokens = tokens.into_iter().collect::<Option<TokenSet>>()?;
@@ -309,7 +309,7 @@ impl FullTextIndex {
 
     pub fn parse_document(&self, text: &str, hw_counter: &HardwareCounterCell) -> TokenSet {
         let mut document_tokens = AHashSet::new();
-        Tokenizer::tokenize_doc(text, self.config(), |token| {
+        self.get_tokenizer().tokenize_doc(text, |token| {
             if let Some(token_id) = self.get_token(token, hw_counter) {
                 document_tokens.insert(token_id);
             }
@@ -659,6 +659,7 @@ mod tests {
                         storage,
                         inverted_index: _,
                         config,
+                        tokenizer: _, // Will be re-initialized
                     } = index;
                     let mutable_text_index::Storage::RocksDb(db_wrapper) = storage else {
                         panic!("expected RocksDB storage for immutable index");

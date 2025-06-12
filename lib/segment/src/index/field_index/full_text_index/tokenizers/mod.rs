@@ -1,3 +1,6 @@
+mod japanese;
+mod multilingual;
+
 use charabia::Tokenize;
 
 use crate::data_types::index::{TextIndexParams, TokenizerType};

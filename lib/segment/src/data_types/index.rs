@@ -278,6 +278,8 @@ pub enum Language {
     Indonesian,
     #[serde(alias = "it")]
     Italian,
+    #[serde(alias = "jp")]
+    Japanese,
     #[serde(alias = "kk")]
     Kazakh,
     #[serde(alias = "ne")]
@@ -301,6 +303,7 @@ pub enum Language {
     #[serde(alias = "tr")]
     Turkish,
 }
+
 impl fmt::Display for Language {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let json_string = serde_json::to_string(self).map_err(|_| fmt::Error)?;
